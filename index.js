@@ -1,30 +1,30 @@
 const env = require('node-env-file');
-const exec = require('child_process');
+const spawn = require('child_process').spawn;
+const slackbot = require('botkit').slackbot;
 
 env(__dirname + '/.env');
 
-var Botkit = require('botkit');
-
-var bot_options = {
+const bot_options = {
   clientId: process.env.clientId,
   clientSecret: process.env.clientSecret,
   scopes: ['bot'],
   json_file_store: __dirname + '/.data/db/'
 };
 
-var controller = Botkit.slackbot(bot_options);
+const controller = slackbot(bot_options);
 
-controller.setupWebserver(process.env.port,function(err,webserver) {
+controller.setupWebserver(process.env.port, (err, webserver) =>  {
   controller
     .createHomepageEndpoint(controller.webserver)
     .createOauthEndpoints(controller.webserver)
     .createWebhookEndpoints(controller.webserver);
 });
 
-listen_types = ['ambient', 'direct_message'];
+const listen_types = ['ambient', 'direct_message'];
 
 function say(voice, message) {
   console.log('saying', message, 'on voice', voice);
+  spawn('say', ['-v', voice, message]);
 }
 
 function vol(volume) {
@@ -55,6 +55,47 @@ function gif(keyword) {
   console.log('showing gif', keyword);
 }
 
+controller.hears(['^(say) (-v) (.*?) (.*)', '^(say) (.*)', '^(mondd) (.*)'], listen_types, (bot, msg) => {
+  var voice = 'Fiona';
+  message = msg.match[2];
+
+  if (msg.match[1] == 'mondd') {
+    voice = 'Mariska';
+  } else if (msg.match[2] == '-v') {
+    voice = msg.match[3];
+    message = msg.match[4];
+  }
+
+  say(voice, message);
+});
+
+controller.hears('^vol ([\\d]+)$', listen_types, (bot, msg) => {
+  volume = parseInt(msg.match[1]);
+  volume = Math.min(Math.max(volume, 0), 100);
+  vol(volume);
+});
+
+controller.hears('^http[^ ]*$', listen_types, (bot, msg) => {
+  var url = msg.match[1];
+  if (url.match(/youtube/i)) {
+    queue(url);
+  } else {
+    browse(url);
+  }
+});
+
+controller.hears(['^close', '^exit'], listen_types, (bot, msg) => {
+  close();
+});
+
+controller.hears('^next$', listen_types, (bot, msg) => {
+  next();
+});
+
 controller.hears('^help$', listen_types, (bot, msg) => {
   help();
+});
+
+controller.hears('^gif (.*)', listen_types, (bot, msg) => {
+  gif(msg.match[1]);
 });
