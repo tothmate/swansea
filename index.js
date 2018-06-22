@@ -23,7 +23,8 @@ controller.setupWebserver(process.env.port, (err, webserver) =>  {
     .createWebhookEndpoints(controller.webserver);
 });
 
-const listen_types = ['ambient', 'direct_message'];
+//const listen_types = ['ambient', 'direct_message'];
+const listen_types = ['ambient'];
 
 var playlist = [];
 var playing = false;
@@ -65,6 +66,22 @@ function next() {
   }
 }
 
+controller.hears('^help$', listen_types, (bot, msg) => {
+  var help = [
+    'Try the following:',
+    'help',
+    'say <something>, say -v <Whisper, Zarvox, ...> <something>, mondd <valami>: ',
+    'vol <number>',
+    'http links',
+    'youtube link, yt <something>, youtube <something>',
+    'next',
+    'close, exit, clear',
+    'gif <keyword>',
+    'vb'
+  ];
+  bot.reply(msg, help.join('\n'));
+});
+
 controller.hears(['^(say) (-v) (.*?) (.*)', '^(say) (.*)', '^(mondd) (.*)'], listen_types, (bot, msg) => {
   var voice = 'Fiona';
   message = msg.match[2];
@@ -104,14 +121,9 @@ controller.hears('^next$', listen_types, (bot, msg) => {
   next();
 });
 
-controller.hears('^help$', listen_types, (bot, msg) => {
-  bot.reply();
-  // TODO
-});
-
-controller.hears('^vb$', listen_types, (bot, msg) => {
+controller.hears('^vb$', listen_types+['direct_message'], (bot, msg) => {
   browse('https://player.mediaklikk.hu/playernew/player.php?video=mtv4live&osfamily=OS%20X&browsername=Safari');
-  // TODO
+
 });
 
 controller.hears('^gif (.*)', listen_types, (bot, msg) => {
