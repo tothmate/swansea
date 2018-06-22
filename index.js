@@ -1,14 +1,16 @@
 const env = require('node-env-file');
-const spawn = require('child_process').spawn;
+const execFile = require('child_process').execFile;
 const slackbot = require('botkit').slackbot;
 
 env(__dirname + '/.env');
+
+const data_dir = __dirname + '/.data/'
 
 const bot_options = {
   clientId: process.env.clientId,
   clientSecret: process.env.clientSecret,
   scopes: ['bot'],
-  json_file_store: __dirname + '/.data/db/'
+  json_file_store: data_dir + 'db/'
 };
 
 const controller = slackbot(bot_options);
@@ -22,9 +24,11 @@ controller.setupWebserver(process.env.port, (err, webserver) =>  {
 
 const listen_types = ['ambient', 'direct_message'];
 
+var playlist = [];
+var playing = false;
+
 function say(voice, message) {
-  console.log('saying', message, 'on voice', voice);
-  spawn('say', ['-v', voice, message]);
+  execFile('say', ['-v', voice, message]);
 }
 
 function vol(volume) {
@@ -36,19 +40,47 @@ function browse(url) {
 }
 
 function close() {
-  console.log('close');
+  playlist = [];
+  playing = false;
+  execFile('killall', ['mpv']);
+}
+
+function play(filename) {
+  playing = true;
+  execFile('mpv', ['--fs', filename], {'cwd': data_dir}, (err, stdout, stderr) => {
+    playing = false;
+    next();
+  });
 }
 
 function queue(url) {
-  console.log('queuing', url);
+  execFile('youtube-dl', ['--id', '-f', 'mp4', url], {'cwd': data_dir}, (err, stdout, stderr) => {
+    execFile('youtube-dl', ['--get-filename', '--id', '-f', 'mp4', url], {}, (err, stdout, stderr) => {
+      playlist.push(stdout.trim());
+      if (!playing) {
+        next();
+      }
+    });
+  });
 }
 
 function next() {
-  console.log('next video');
+  if (playing) {
+    execFile('killall', ['mpv'], {}, (err, stdout, stderr) => next);
+    return;
+  }
+
+  if (playlist.length > 0) {
+    play(playlist.shift());
+  }
 }
 
 function help() {
   console.log('help');
+}
+
+function m4live() {
+  console.log('https://player.mediaklikk.hu/playernew/player.php?video=mtv4live&osfamily=OS%20X&browsername=Safari');
 }
 
 function gif(keyword) {
@@ -84,7 +116,7 @@ controller.hears('^http[^ ]*$', listen_types, (bot, msg) => {
   }
 });
 
-controller.hears(['^close', '^exit'], listen_types, (bot, msg) => {
+controller.hears(['^close$', '^exit$', '^clear$', '^stop$'], listen_types, (bot, msg) => {
   close();
 });
 
@@ -96,6 +128,14 @@ controller.hears('^help$', listen_types, (bot, msg) => {
   help();
 });
 
+controller.hears('^vb$', listen_types, (bot, msg) => {
+  m4live();
+});
+
 controller.hears('^gif (.*)', listen_types, (bot, msg) => {
   gif(msg.match[1]);
+});
+
+controller.hears(['^yt (.*)', '^youtube (.*)'], listen_types, (bot, msg) => {
+  queue('ytsearch:'+ msg.match[1]);
 });
