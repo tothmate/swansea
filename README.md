@@ -8,3 +8,8 @@ Requirements:
 - mpv
 - giphy api key
 - localtunnel
+- chrome-cli
+
+Ideas:
+- meme generator
+- volume up/down
