@@ -78,9 +78,9 @@ controller.hears(['^(say) (-v) (.*?) (.*)', '^(say) (.*)', '^(mondd) (.*)'], lis
 
 controller.hears('^vol ([\\d]+)$', listen_types, (bot, msg) => {
   volume = parseInt(msg.match[1]);
-  volume = Math.min(Math.max(volume, 0), 100);
+  volume = Math.min(Math.max(volume, 0), 10);
   // TODO: up/down feature too
-  // TODO: implement volume change
+  execFile('osascript', ['-e', 'set Volume '+ volume]);
 });
 
 controller.hears('^http[^ ]*$', listen_types, (bot, msg) => {
@@ -96,8 +96,7 @@ controller.hears('^http[^ ]*$', listen_types, (bot, msg) => {
 controller.hears(['^close$', '^exit$', '^clear$', '^stop$'], listen_types, (bot, msg) => {
   playlist = [];
   playing = false;
-  execFile('killall', ['mpv']);
-  // TODO: close browser
+  execFile('killall', ['mpv', 'Safari']);
 });
 
 controller.hears('^next$', listen_types, (bot, msg) => {
