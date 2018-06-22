@@ -34,15 +34,21 @@ function browse(url) {
   execFile('open', ['/Applications/Google Chrome.app', '--args', '--kiosk', url]);
 }
 
-function play(filename) {
-  playing = true;
-  execFile('mpv', ['--fs', filename], {'cwd': data_dir}, (err, stdout, stderr) => {
-    playing = false;
-    next();
+function play(filename, loop=false) {
+  execFile('killall', ['mpv'], {}, (err, stdout, stderr) => {
+    playing = true;
+    var params = ['--fs', filename];
+    if (loop) {
+      params.unshift('--loop=inf');
+    }
+    execFile('mpv', params, {'cwd': data_dir}, (err, stdout, stderr) => {
+      playing = false;
+      next();
+    });
   });
 }
 
-function queue(url) {
+function queue_youtube(url) {
   execFile('youtube-dl', ['--id', '-f', 'mp4', url], {'cwd': data_dir}, (err, stdout, stderr) => {
     execFile('youtube-dl', ['--get-filename', '--id', '-f', 'mp4', url], {}, (err, stdout, stderr) => {
       playlist.push(stdout.trim());
@@ -54,11 +60,6 @@ function queue(url) {
 }
 
 function next() {
-  if (playing) {
-    execFile('killall', ['mpv'], {}, (err, stdout, stderr) => next);
-    return;
-  }
-
   if (playlist.length > 0) {
     play(playlist.shift());
   }
@@ -84,14 +85,9 @@ controller.hears('^vol ([\\d]+)$', listen_types, (bot, msg) => {
   execFile('osascript', ['-e', 'set Volume '+ volume]);
 });
 
-controller.hears('^http[^]', listen_types, (bot, msg) => {
-  var url = msg.match[1];
-  console.log('');
-  if (url.match(/youtube/i)) {
-    queue(url);
-  } else {
-    browse(url);
-  }
+controller.hears('http.*', listen_types, (bot, msg) => {
+  var url = msg.match[0];
+  console.log(msg);
 });
 
 controller.hears(['^close$', '^exit$', '^clear$', '^stop$'], listen_types, (bot, msg) => {
@@ -119,11 +115,11 @@ controller.hears('^gif (.*)', listen_types, (bot, msg) => {
   giphy.search('gifs', {'q': keyword}).then((response) => {
     if (response.data.length > 0) {
       var gif = response.data[Math.floor(Math.random()*response.data.length)];
-      execFile('mpv', ['--fs', '--loop=inf', gif.images.original.mp4_url]);
+      play(gif.images.original.mp4_url, true);
     }
   });
 });
 
 controller.hears(['^yt (.*)', '^youtube (.*)'], listen_types, (bot, msg) => {
-  queue('ytsearch:'+ msg.match[1]);
+  queue_youtube('ytsearch:'+ msg.match[1]);
 });
