@@ -32,17 +32,18 @@ function say(voice, message) {
 }
 
 function vol(volume) {
-  console.log('setting volume to', volume);
+  // TODO: implement volume change
 }
 
 function browse(url) {
-  console.log('opening', url);
+  // TODO: implement browser open in fullscreen
 }
 
 function close() {
   playlist = [];
   playing = false;
   execFile('killall', ['mpv']);
+  // TODO: close browser
 }
 
 function play(filename) {
@@ -76,15 +77,16 @@ function next() {
 }
 
 function help() {
-  console.log('help');
+  // TODO: reply with available features
 }
 
 function m4live() {
-  console.log('https://player.mediaklikk.hu/playernew/player.php?video=mtv4live&osfamily=OS%20X&browsername=Safari');
+  browse('https://player.mediaklikk.hu/playernew/player.php?video=mtv4live&osfamily=OS%20X&browsername=Safari');
+  // TODO: fullscreen
 }
 
 function gif(keyword) {
-  console.log('showing gif', keyword);
+  // TODO: giphy + fullscreen
 }
 
 controller.hears(['^(say) (-v) (.*?) (.*)', '^(say) (.*)', '^(mondd) (.*)'], listen_types, (bot, msg) => {
@@ -104,10 +106,12 @@ controller.hears(['^(say) (-v) (.*?) (.*)', '^(say) (.*)', '^(mondd) (.*)'], lis
 controller.hears('^vol ([\\d]+)$', listen_types, (bot, msg) => {
   volume = parseInt(msg.match[1]);
   volume = Math.min(Math.max(volume, 0), 100);
+  // TODO: up/down feature too
   vol(volume);
 });
 
 controller.hears('^http[^ ]*$', listen_types, (bot, msg) => {
+  // TODO: does not match
   var url = msg.match[1];
   if (url.match(/youtube/i)) {
     queue(url);
@@ -139,3 +143,5 @@ controller.hears('^gif (.*)', listen_types, (bot, msg) => {
 controller.hears(['^yt (.*)', '^youtube (.*)'], listen_types, (bot, msg) => {
   queue('ytsearch:'+ msg.match[1]);
 });
+
+// TODO: add meme subtitles
