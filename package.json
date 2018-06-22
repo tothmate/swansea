@@ -13,7 +13,8 @@
   },
   "dependencies": {
     "botkit": "^0.6.14",
-    "node-env-file": "^0.1.8",
-    "child_process": "^1.0.2"
+    "child_process": "^1.0.2",
+    "giphy-js-sdk-core": "^1.0.3",
+    "node-env-file": "^0.1.8"
   }
 }
