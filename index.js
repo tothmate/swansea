@@ -27,23 +27,9 @@ const listen_types = ['ambient', 'direct_message'];
 var playlist = [];
 var playing = false;
 
-function say(voice, message) {
-  execFile('say', ['-v', voice, message]);
-}
-
-function vol(volume) {
-  // TODO: implement volume change
-}
-
 function browse(url) {
   // TODO: implement browser open in fullscreen
-}
-
-function close() {
-  playlist = [];
-  playing = false;
-  execFile('killall', ['mpv']);
-  // TODO: close browser
+  // TODO: if image, fit to screen
 }
 
 function play(filename) {
@@ -76,19 +62,6 @@ function next() {
   }
 }
 
-function help() {
-  // TODO: reply with available features
-}
-
-function m4live() {
-  browse('https://player.mediaklikk.hu/playernew/player.php?video=mtv4live&osfamily=OS%20X&browsername=Safari');
-  // TODO: fullscreen
-}
-
-function gif(keyword) {
-  // TODO: giphy + fullscreen
-}
-
 controller.hears(['^(say) (-v) (.*?) (.*)', '^(say) (.*)', '^(mondd) (.*)'], listen_types, (bot, msg) => {
   var voice = 'Fiona';
   message = msg.match[2];
@@ -100,14 +73,14 @@ controller.hears(['^(say) (-v) (.*?) (.*)', '^(say) (.*)', '^(mondd) (.*)'], lis
     message = msg.match[4];
   }
 
-  say(voice, message);
+  execFile('say', ['-v', voice, message]);
 });
 
 controller.hears('^vol ([\\d]+)$', listen_types, (bot, msg) => {
   volume = parseInt(msg.match[1]);
   volume = Math.min(Math.max(volume, 0), 100);
   // TODO: up/down feature too
-  vol(volume);
+  // TODO: implement volume change
 });
 
 controller.hears('^http[^ ]*$', listen_types, (bot, msg) => {
@@ -121,7 +94,10 @@ controller.hears('^http[^ ]*$', listen_types, (bot, msg) => {
 });
 
 controller.hears(['^close$', '^exit$', '^clear$', '^stop$'], listen_types, (bot, msg) => {
-  close();
+  playlist = [];
+  playing = false;
+  execFile('killall', ['mpv']);
+  // TODO: close browser
 });
 
 controller.hears('^next$', listen_types, (bot, msg) => {
@@ -129,15 +105,17 @@ controller.hears('^next$', listen_types, (bot, msg) => {
 });
 
 controller.hears('^help$', listen_types, (bot, msg) => {
-  help();
+  // TODO: reply with available features
 });
 
 controller.hears('^vb$', listen_types, (bot, msg) => {
-  m4live();
+  browse('https://player.mediaklikk.hu/playernew/player.php?video=mtv4live&osfamily=OS%20X&browsername=Safari');
+  // TODO: fullscreen
 });
 
 controller.hears('^gif (.*)', listen_types, (bot, msg) => {
-  gif(msg.match[1]);
+  // TODO: giphy + fullscreen
+  // TODO: keyword search
 });
 
 controller.hears(['^yt (.*)', '^youtube (.*)'], listen_types, (bot, msg) => {
