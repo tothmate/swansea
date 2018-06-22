@@ -85,9 +85,13 @@ controller.hears('^vol ([\\d]+)$', listen_types, (bot, msg) => {
   execFile('osascript', ['-e', 'set Volume '+ volume]);
 });
 
-controller.hears('http.*', listen_types, (bot, msg) => {
-  var url = msg.match[0];
-  console.log(msg);
+controller.hears('^<(http.*)>$', listen_types, (bot, msg) => {
+  var url = msg.match[1];
+  if (url.match(/youtube/i)) {
+    queue_youtube(url);
+  } else {
+    browse(url);
+  }
 });
 
 controller.hears(['^close$', '^exit$', '^clear$', '^stop$'], listen_types, (bot, msg) => {
