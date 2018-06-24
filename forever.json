@@ -1,0 +1,15 @@
+[
+  {
+    "uid": "bot",
+    "append": true,
+    "watch": true,
+    "script": "index.js",
+    "sourceDir": "."
+  },
+  {
+    "uid": "tunnel",
+    "append": true,
+    "script": "./node_modules/localtunnel/bin/client",
+    "args": ["--port", "8765", "--subdomain", "swansea"]
+  }
+]

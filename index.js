@@ -6,6 +6,7 @@ const giphy_api = require('giphy-js-sdk-core');
 env(__dirname + '/.env');
 
 const data_dir = __dirname + '/.data/'
+const port = 8765
 
 const bot_options = {
   clientId: process.env.client_id,
@@ -16,14 +17,13 @@ const bot_options = {
 
 const controller = slackbot(bot_options);
 
-controller.setupWebserver(process.env.port, (err, webserver) =>  {
+controller.setupWebserver(8765, (err, webserver) =>  {
   controller
     .createHomepageEndpoint(controller.webserver)
     .createOauthEndpoints(controller.webserver)
     .createWebhookEndpoints(controller.webserver);
 });
 
-//const listen_types = ['ambient', 'direct_message'];
 const listen_types = ['ambient'];
 
 var playlist = [];

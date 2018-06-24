@@ -7,8 +7,6 @@ Requirements:
 - youtube-dl
 - mpv
 - giphy api key
-- localtunnel
-- chrome-cli
 
 Ideas:
 - meme generator

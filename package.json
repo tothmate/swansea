@@ -6,15 +6,16 @@
   "license": "MIT",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
-  },
-  "engines": {
-    "node": "5.1.1"
+    "start": "FOREVER_ROOT=.forever ./node_modules/forever/bin/forever start forever.json",
+    "stop": "FOREVER_ROOT=.forever ./node_modules/forever/bin/forever stopall"
   },
   "dependencies": {
     "botkit": "^0.6.14",
     "child_process": "^1.0.2",
+    "chrome-cli": "^1.1.1",
+    "forever": "^0.15.3",
     "giphy-js-sdk-core": "^1.0.3",
+    "localtunnel": "^1.9.0",
     "node-env-file": "^0.1.8"
   }
 }
