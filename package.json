@@ -12,7 +12,6 @@
   "dependencies": {
     "botkit": "^0.6.14",
     "child_process": "^1.0.2",
-    "chrome-cli": "^1.1.1",
     "forever": "^0.15.3",
     "giphy-js-sdk-core": "^1.0.3",
     "localtunnel": "^1.9.0",

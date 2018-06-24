@@ -5,6 +5,7 @@ Requirements:
 - google chrome
 - voices installed
 - youtube-dl
+- chrome-cli
 - mpv
 - giphy api key
 
