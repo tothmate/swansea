@@ -5,8 +5,11 @@ const giphy_api = require('giphy-js-sdk-core');
 
 env(__dirname + '/.env');
 
-const data_dir = __dirname + '/.data/'
-const port = 8765
+const data_dir = __dirname + '/.data/';
+const port = 8765;
+const cl = console.log;
+const listen_types = ['ambient'];
+const giphy = giphy_api(process.env.giphy_api_key);
 
 const bot_options = {
   clientId: process.env.client_id,
@@ -24,25 +27,25 @@ controller.setupWebserver(8765, (err, webserver) =>  {
     .createWebhookEndpoints(controller.webserver);
 });
 
-const listen_types = ['ambient'];
-
 var playlist = [];
 var playing = false;
 
-const giphy = giphy_api(process.env.giphy_api_key);
-
 function browse(url) {
+  cl('opening url', url);
   execFile('open', ['/Applications/Google Chrome.app', '--args', '--kiosk', url]);
 }
 
 function play(filename, loop=false) {
+  cl('killing mpv');
   execFile('killall', ['mpv'], {}, (err, stdout, stderr) => {
+    cl('playing', filename, 'looping:', loop);
     playing = true;
     var params = ['--fs', filename];
     if (loop) {
       params.unshift('--loop=inf');
     }
     execFile('mpv', params, {'cwd': data_dir}, (err, stdout, stderr) => {
+      cl('mpv exited', filename);
       playing = false;
       next();
     });
@@ -50,8 +53,11 @@ function play(filename, loop=false) {
 }
 
 function queue_youtube(url) {
+  cl('queuing youtube', url);
   execFile('youtube-dl', ['--id', '-f', 'mp4', url], {'cwd': data_dir}, (err, stdout, stderr) => {
+    cl('youtube video downloaded', url);
     execFile('youtube-dl', ['--get-filename', '--id', '-f', 'mp4', url], {}, (err, stdout, stderr) => {
+      cl('getting dowloaded filename', url);
       playlist.push(stdout.trim());
       if (!playing) {
         next();
@@ -61,6 +67,7 @@ function queue_youtube(url) {
 }
 
 function next() {
+  cl('next');
   if (playlist.length > 0) {
     play(playlist.shift());
   }
@@ -93,12 +100,14 @@ controller.hears(['^(say) (-v) (.*?) (.*)', '^(say) (.*)', '^(mondd) (.*)'], lis
     message = msg.match[4];
   }
 
+  cl('saying', message, 'on', voice);
   execFile('say', ['-v', voice, message]);
 });
 
 controller.hears('^vol ([\\d]+)$', listen_types, (bot, msg) => {
   volume = parseInt(msg.match[1]);
   volume = Math.min(Math.max(volume, 0), 10);
+  cl('set volume', volume);
   execFile('osascript', ['-e', 'set Volume '+ volume]);
 });
 
@@ -114,6 +123,7 @@ controller.hears('^<(http.*)>$', listen_types, (bot, msg) => {
 controller.hears(['^close$', '^exit$', '^clear$', '^stop$'], listen_types, (bot, msg) => {
   playlist = [];
   playing = false;
+  cl('kill everything');
   execFile('killall', ['mpv', 'Chrome']);
 });
 

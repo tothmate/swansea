@@ -3,8 +3,7 @@
     "uid": "bot",
     "append": true,
     "watch": true,
-    "script": "index.js",
-    "sourceDir": "."
+    "script": "index.js"
   },
   {
     "uid": "tunnel",
