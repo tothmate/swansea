@@ -7,20 +7,17 @@ env(__dirname + '/.env');
 
 const data_dir = __dirname + '/.data/';
 const port = 8765;
-const cl = console.log;
 const listen_types = ['ambient'];
 const giphy = giphy_api(process.env.giphy_api_key);
-
-const bot_options = {
+const controller = slackbot({
   clientId: process.env.client_id,
   clientSecret: process.env.client_secret,
   scopes: ['bot'],
-  json_file_store: data_dir + 'db/'
-};
+  json_file_store: data_dir + 'db/',
+  rtm_receive_messages: false
+});
 
-const controller = slackbot(bot_options);
-
-controller.setupWebserver(8765, (err, webserver) =>  {
+controller.setupWebserver(port, (err, webserver) =>  {
   controller
     .createHomepageEndpoint(controller.webserver)
     .createOauthEndpoints(controller.webserver)
@@ -29,6 +26,16 @@ controller.setupWebserver(8765, (err, webserver) =>  {
 
 var playlist = [];
 var playing = false;
+
+function cl(...args) {
+  console.log(...args);
+  controller.spawn({'token': process.env.token}, function(bot) {
+    bot.say({
+      channel: 'swansea-console',
+      text: args.join(' ')
+    });
+  }).startRTM();
+}
 
 function browse(url) {
   cl('opening url', url);
