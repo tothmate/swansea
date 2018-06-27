@@ -142,9 +142,11 @@ controller.hears('^next$', listen_types, (bot, msg) => {
   next();
 });
 
-controller.hears('^vb$', ['direct_message'], (bot, msg) => {
+controller.hears('^vb$', listen_types, (bot, msg) => {
   browse('https://player.mediaklikk.hu/playernew/player.php?video=mtv4live&osfamily=OS%20X&browsername=Chrome');
-  execFile('chrome-cli', ['execute', 'window.location.assign(\'javascript:jwplayer(\"player\").play()\')']);
+  setTimeout(() => {
+    execFile('chrome-cli', ['execute', 'window.location.assign(\'javascript:jwplayer(\"player\").play()\')']);
+  }), 5000);
 });
 
 controller.hears('^gif (.*)', listen_types, (bot, msg) => {
