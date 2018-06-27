@@ -24,17 +24,21 @@ controller.setupWebserver(port, (err, webserver) =>  {
     .createWebhookEndpoints(controller.webserver);
 });
 
+var console_bot;
+
+controller.spawn({'token': process.env.token}, function(bot) {
+  console_bot = bot;
+}).startRTM();
+
 var playlist = [];
 var playing = false;
 
 function cl(...args) {
   console.log(...args);
-  controller.spawn({'token': process.env.token}, function(bot) {
-    bot.say({
-      channel: 'swansea-console',
-      text: args.join(' ')
-    });
-  }).startRTM();
+  console_bot.say({
+    channel: 'swansea-console',
+    text: args.join(' ')
+  });
 }
 
 function browse(url) {
