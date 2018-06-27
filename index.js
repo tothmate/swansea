@@ -135,7 +135,7 @@ controller.hears(['^close$', '^exit$', '^clear$', '^stop$'], listen_types, (bot,
   playlist = [];
   playing = false;
   cl('kill everything');
-  execFile('killall', ['mpv', 'Chrome']);
+  execFile('killall', ['mpv', 'Google Chrome']);
 });
 
 controller.hears('^next$', listen_types, (bot, msg) => {
