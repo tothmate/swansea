@@ -146,7 +146,7 @@ controller.hears('^vb$', listen_types, (bot, msg) => {
   browse('https://player.mediaklikk.hu/playernew/player.php?video=mtv4live&osfamily=OS%20X&browsername=Chrome');
   setTimeout(() => {
     execFile('chrome-cli', ['execute', 'window.location.assign(\'javascript:jwplayer(\"player\").play()\')']);
-  }), 5000);
+  }, 5000);
 });
 
 controller.hears('^gif (.*)', listen_types, (bot, msg) => {
