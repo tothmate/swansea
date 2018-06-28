@@ -39,14 +39,25 @@ function cl(...args) {
   });
 }
 
+function run_after_document_loaded(callback) {
+  cl('checking if document ready');
+  execFile('chrome-cli', ['execute', 'document.readyState'], (err, stdout, stderr) => {
+    if (stdout.trim() == 'complete') {
+      callback();
+    } else {
+      setTimeout(()=>run_after_document_loaded(callback), 1000);
+    }
+  });
+}
+
 function browse(url, script) {
   cl('opening url', url);
   execFile('open', ['/Applications/Google Chrome.app', '--args', '--kiosk', url]);
   if (script) {
-    setTimeout(() => {
-      cl('running javascript', script);
+    run_after_document_loaded(() => {
+      cl('running script', script);
       execFile('chrome-cli', ['execute', script]);
-    }, 5000);
+    });
   }
 }
 
@@ -155,9 +166,16 @@ controller.hears(['^yt (.*)', '^youtube (.*)'], listen_types, (bot, msg) => {
   queue_youtube('ytsearch:'+ msg.match[1]);
 });
 
+controller.middleware.normalize.use(function(bot, msg, next) {
+  if (!msg.subtype && msg.bot_id){
+    msg.subtype = 'bot_message';
+  }
+  next();
+});
+
 controller.on('bot_message', (bot, msg) => {
   if (msg['attachments'] && msg['attachments'][0] && msg['attachments'][0].image_url) {
     var url = msg['attachments'][0].image_url;
-    browse(__dirname + '/index.html', 'document.getElementById("swansea-image").src="'+ url +'";');
+    browse('file://'+ __dirname + '/index.html', 'document.getElementById("swansea-image").src="'+ url +'";');
   }
 });
