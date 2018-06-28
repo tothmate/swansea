@@ -167,7 +167,8 @@ controller.hears(['^yt (.*)', '^youtube (.*)'], listen_types, (bot, msg) => {
 });
 
 controller.hears('^git pull$', listen_types, (bot, msg) => {
-  execFile('git', ['pull']);
+  cl('git pull');
+  execFile('git', ['pull'], (err, stdout, stderr) => cl(stdout));
 });
 
 controller.middleware.normalize.use(function(bot, msg, next) {
