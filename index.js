@@ -1,14 +1,12 @@
 const env = require('node-env-file');
 const execFile = require('child_process').execFile;
 const slackbot = require('botkit').slackbot;
-const giphy_api = require('giphy-js-sdk-core');
 
 env(__dirname + '/.env');
 
 const data_dir = __dirname + '/.data/';
 const port = 8765;
-const listen_types = ['ambient'];
-const giphy = giphy_api(process.env.giphy_api_key);
+const listen_types = ['ambient', 'direct_message'];
 const controller = slackbot({
   clientId: process.env.client_id,
   clientSecret: process.env.client_secret,
@@ -41,9 +39,15 @@ function cl(...args) {
   });
 }
 
-function browse(url) {
+function browse(url, script) {
   cl('opening url', url);
   execFile('open', ['/Applications/Google Chrome.app', '--args', '--kiosk', url]);
+  if (script) {
+    setTimeout(() => {
+      cl('running javascript', script);
+      execFile('chrome-cli', ['execute', script]);
+    }, 5000);
+  }
 }
 
 function play(filename, loop=false) {
@@ -89,12 +93,13 @@ controller.hears('^help$', listen_types, (bot, msg) => {
     'Try the following:',
     'help',
     'say <something>, say -v <Whisper, Zarvox, ...> <something>, mondd <valami>: ',
-    'vol <number>',
+    'vol <number> (does not work with hdmi)',
     'http links',
     'youtube link, yt <something>, youtube <something>',
     'next',
     'close, exit, clear',
-    'gif <keyword>',
+    '/giphy <keyword>',
+    '/imgflip <meme> (type _/imgflip help_ for memes)',
     'vb'
   ];
   bot.reply(msg, help.join('\n'));
@@ -143,22 +148,16 @@ controller.hears('^next$', listen_types, (bot, msg) => {
 });
 
 controller.hears('^vb$', listen_types, (bot, msg) => {
-  browse('https://player.mediaklikk.hu/playernew/player.php?video=mtv4live&osfamily=OS%20X&browsername=Chrome');
-  setTimeout(() => {
-    execFile('chrome-cli', ['execute', 'window.location.assign(\'javascript:jwplayer(\"player\").play()\')']);
-  }, 5000);
-});
-
-controller.hears('^gif (.*)', listen_types, (bot, msg) => {
-  var keyword = msg.match[1];
-  giphy.search('gifs', {'q': keyword}).then((response) => {
-    if (response.data.length > 0) {
-      var gif = response.data[Math.floor(Math.random()*response.data.length)];
-      play(gif.images.original.mp4_url, true);
-    }
-  });
+  browse('https://player.mediaklikk.hu/playernew/player.php?video=mtv4live&osfamily=OS%20X&browsername=Chrome', 'window.location.assign(\'javascript:jwplayer(\"player\").play()\')');
 });
 
 controller.hears(['^yt (.*)', '^youtube (.*)'], listen_types, (bot, msg) => {
   queue_youtube('ytsearch:'+ msg.match[1]);
+});
+
+controller.on('bot_message', (bot, msg) => {
+  if (msg['attachments'] && msg['attachments'][0] && msg['attachments'][0].image_url) {
+    var url = msg['attachments'][0].image_url;
+    browse(__dirname + '/index.html', 'document.getElementById("swansea-image").src="'+ url +'";');
+  }
 });

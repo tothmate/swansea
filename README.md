@@ -5,10 +5,5 @@ Requirements:
 - google chrome
 - voices installed
 - youtube-dl
-- chrome-cli
 - mpv
-- giphy api key
-
-Ideas:
-- meme generator
-- volume up/down
+- chrome-cli
