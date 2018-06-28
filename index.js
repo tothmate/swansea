@@ -166,6 +166,10 @@ controller.hears(['^yt (.*)', '^youtube (.*)'], listen_types, (bot, msg) => {
   queue_youtube('ytsearch:'+ msg.match[1]);
 });
 
+controller.hears('^git pull$', listen_types, (bot, msg) => {
+  execFile('git', ['pull']);
+});
+
 controller.middleware.normalize.use(function(bot, msg, next) {
   if (!msg.subtype && msg.bot_id){
     msg.subtype = 'bot_message';
