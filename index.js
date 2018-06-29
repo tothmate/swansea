@@ -4,6 +4,7 @@ const slackbot = require('botkit').slackbot;
 const webdriverio = require('webdriverio');
 const request = require('request');
 const fs = require('fs');
+const youtubeSearch = require('youtube-search');
 
 env(__dirname + '/.env');
 
@@ -69,6 +70,10 @@ function browse(url) {
   return browser.url(url);
 }
 
+function browse_youtube(url) {
+  browse(url).click('.ytp-fullscreen-button');
+}
+
 function browse_image(url) {
   cl('opening image', url);
   browse('file://'+ __dirname + '/index.html').execute((url) => {
@@ -119,7 +124,7 @@ controller.hears('^vol ([\\d]+)$', listen_types, (bot, msg) => {
 controller.hears('^<(http.*)>$', listen_types, (bot, msg) => {
   var url = msg.match[1];
   if (url.match(/youtube/i)) {
-    browse(url).click('.ytp-fullscreen-button');
+    browse_youtube(url);
   } else {
     browse(url);
   }
@@ -135,7 +140,14 @@ controller.hears('^vb$', listen_types, (bot, msg) => {
 });
 
 controller.hears(['^yt (.*)', '^youtube (.*)'], listen_types, (bot, msg) => {
-  cl(msg.match[1]);
+  var keyword = msg.match[1];
+  cl('searching youtube', keyword);
+  youtubeSearch(keyword, {maxResults: 1, key: process.env.youtube_api_key}, (err, results) => {
+    cl('youtube result, error?', err);
+    if (results && results.length > 0 && results[0].link) {
+      browse_youtube(results[0].link);
+    }
+  });
 });
 
 controller.hears('^git pull$', listen_types, (bot, msg) => {

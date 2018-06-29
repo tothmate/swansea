@@ -16,6 +16,7 @@
     "forever": "^0.15.3",
     "localtunnel": "^1.9.0",
     "node-env-file": "^0.1.8",
-    "webdriverio": "^4.13.1"
+    "webdriverio": "^4.13.1",
+    "youtube-search": "^1.1.1"
   }
 }
