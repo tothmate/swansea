@@ -9,6 +9,11 @@
     "uid": "tunnel",
     "append": true,
     "script": "./node_modules/localtunnel/bin/client",
-    "args": ["--port", "8765", "--subdomain", "bishopston-swansea"]
+    "args": ["--port", "8765", "--subdomain", "bishopston-swansea-2"]
+  },
+  {
+    "uid": "chromedriver",
+    "append": true,
+    "script": "./node_modules/chromedriver/bin/chromedriver"
   }
 ]

@@ -1,8 +1,24 @@
 const env = require('node-env-file');
 const execFile = require('child_process').execFile;
 const slackbot = require('botkit').slackbot;
+const webdriverio = require('webdriverio');
+const request = require('request');
+const fs = require('fs');
 
 env(__dirname + '/.env');
+
+const webdriver_config = {
+  desiredCapabilities: {
+    browserName: 'chrome',
+    chromeOptions: {
+      args: ['disable-infobars', 'start-fullscreen'],
+      prefs: {'browser': {'show_fullscreen_toolbar': false}}
+    }
+  },
+  port: '9515',
+  path: '/',
+  services: ['chromedriver']
+};
 
 const data_dir = __dirname + '/.data/';
 const port = 8765;
@@ -23,13 +39,11 @@ controller.setupWebserver(port, (err, webserver) =>  {
 });
 
 var console_bot;
+var browser = null;
 
-controller.spawn({'token': process.env.token}, function(bot) {
+controller.spawn({'token': process.env.token}, (bot) => {
   console_bot = bot;
 }).startRTM();
-
-var playlist = [];
-var playing = false;
 
 function cl(...args) {
   console.log(...args);
@@ -39,79 +53,39 @@ function cl(...args) {
   });
 }
 
-function run_after_document_loaded(callback) {
-  cl('checking if document ready');
-  execFile('chrome-cli', ['execute', 'document.readyState'], (err, stdout, stderr) => {
-    if (stdout.trim() == 'complete') {
-      callback();
-    } else {
-      setTimeout(()=>run_after_document_loaded(callback), 1000);
-    }
-  });
+function close() {
+  cl('killall Chrome');
+  browser = null;
+  execFile('killall', ['Google Chrome']);
 }
 
-function browse(url, script) {
-  cl('opening url', url);
-  execFile('open', ['/Applications/Google Chrome.app', '--args', '--kiosk', url]);
-  if (script) {
-    run_after_document_loaded(() => {
-      cl('running script', script);
-      execFile('chrome-cli', ['execute', script]);
-    });
+function browse(url) {
+  cl('opening', url);
+  if (!browser) {
+    cl('starting browser');
+    browser = webdriverio.remote(webdriver_config).init();
   }
+
+  return browser.url(url);
 }
 
-function play(filename, loop=false) {
-  cl('killing mpv');
-  execFile('killall', ['mpv'], {}, (err, stdout, stderr) => {
-    cl('playing', filename, 'looping:', loop);
-    playing = true;
-    var params = ['--fs', filename];
-    if (loop) {
-      params.unshift('--loop=inf');
-    }
-    execFile('mpv', params, {'cwd': data_dir}, (err, stdout, stderr) => {
-      cl('mpv exited', filename);
-      playing = false;
-      next();
-    });
-  });
-}
-
-function queue_youtube(url) {
-  cl('queuing youtube', url);
-  execFile('youtube-dl', ['--id', '-f', 'mp4', url], {'cwd': data_dir}, (err, stdout, stderr) => {
-    cl('youtube video downloaded', url);
-    execFile('youtube-dl', ['--get-filename', '--id', '-f', 'mp4', url], {}, (err, stdout, stderr) => {
-      cl('getting dowloaded filename', url);
-      playlist.push(stdout.trim());
-      if (!playing) {
-        next();
-      }
-    });
-  });
-}
-
-function next() {
-  cl('next');
-  if (playlist.length > 0) {
-    play(playlist.shift());
-  }
+function browse_image(url) {
+  cl('opening image', url);
+  browse('file://'+ __dirname + '/index.html').execute((url) => {
+    document.getElementById("swansea-image").src = url;
+  }, url);
 }
 
 controller.hears('^help$', listen_types, (bot, msg) => {
   var help = [
     'Try the following:',
-    'help',
-    'say <something>, say -v <Whisper, Zarvox, ...> <something>, mondd <valami>: ',
-    'vol <number> (does not work with hdmi)',
-    'http links',
-    'youtube link, yt <something>, youtube <something>',
-    'next',
-    'close, exit, clear',
-    '/giphy <keyword>',
-    '/imgflip <meme> (type _/imgflip help_ for memes)',
-    'vb'
+    '*say <something>*, *say -v <Whisper, Zarvox, ...> <something>*, *mondd <valami>* for robo speak',
+    'or just insert any link (websites, youtube etc)',
+    'use */giphy <keyword>* to send gifs',
+    'and */imgflip <meme>* to generate yur own memes (type _/imgflip help_)',
+    '*yt <search term>* to search for youtube videos',
+    '*close* kill the browser',
+    '*vb* to start the World Championship stream'
   ];
   bot.reply(msg, help.join('\n'));
 });
@@ -131,6 +105,10 @@ controller.hears(['^(say) (-v) (.*?) (.*)', '^(say) (.*)', '^(mondd) (.*)'], lis
   execFile('say', ['-v', voice, message]);
 });
 
+controller.hears('^mond ', listen_types, (bot, msg) => {
+  bot.reply(msg, 'you mean *mondd* :grammarnazi:')
+});
+
 controller.hears('^vol ([\\d]+)$', listen_types, (bot, msg) => {
   volume = parseInt(msg.match[1]);
   volume = Math.min(Math.max(volume, 0), 10);
@@ -141,29 +119,23 @@ controller.hears('^vol ([\\d]+)$', listen_types, (bot, msg) => {
 controller.hears('^<(http.*)>$', listen_types, (bot, msg) => {
   var url = msg.match[1];
   if (url.match(/youtube/i)) {
-    queue_youtube(url);
+    browse(url).click('.ytp-fullscreen-button');
   } else {
     browse(url);
   }
 });
 
-controller.hears(['^close$', '^exit$', '^clear$', '^stop$'], listen_types, (bot, msg) => {
-  playlist = [];
-  playing = false;
-  cl('kill everything');
-  execFile('killall', ['mpv', 'Google Chrome']);
-});
-
-controller.hears('^next$', listen_types, (bot, msg) => {
-  next();
+controller.hears(['^close$', '^exit$', '^stop$'], listen_types, (bot, msg) => {
+  close();
 });
 
 controller.hears('^vb$', listen_types, (bot, msg) => {
-  browse('https://player.mediaklikk.hu/playernew/player.php?video=mtv4live&osfamily=OS%20X&browsername=Chrome', 'window.location.assign(\'javascript:jwplayer(\"player\").play()\')');
+  browse('https://player.mediaklikk.hu/playernew/player.php?video=mtv4live&osfamily=OS%20X&browsername=Chrome')
+    .click('#player').click('.jw-icon-fullscreen');
 });
 
 controller.hears(['^yt (.*)', '^youtube (.*)'], listen_types, (bot, msg) => {
-  queue_youtube('ytsearch:'+ msg.match[1]);
+  cl(msg.match[1]);
 });
 
 controller.hears('^git pull$', listen_types, (bot, msg) => {
@@ -171,7 +143,7 @@ controller.hears('^git pull$', listen_types, (bot, msg) => {
   execFile('git', ['pull'], (err, stdout, stderr) => cl(stdout));
 });
 
-controller.middleware.normalize.use(function(bot, msg, next) {
+controller.middleware.normalize.use((bot, msg, next) => {
   if (!msg.subtype && msg.bot_id){
     msg.subtype = 'bot_message';
   }
@@ -181,6 +153,25 @@ controller.middleware.normalize.use(function(bot, msg, next) {
 controller.on('bot_message', (bot, msg) => {
   if (msg['attachments'] && msg['attachments'][0] && msg['attachments'][0].image_url) {
     var url = msg['attachments'][0].image_url;
-    browse('file://'+ __dirname + '/index.html', 'document.getElementById("swansea-image").src="'+ url +'";');
+    browse_image(url);
   }
 });
+
+controller.on('file_share', (bot, msg) => {
+  var url = msg.file.url_private;
+  var filename = data_dir +'uploaded';
+  cl('file shared, downloading', url);
+
+  request({
+    method: 'GET',
+    url: url,
+    headers: {
+      Authorization: 'Bearer ' + process.env.token
+    }
+  }, (err, res, body) => {
+    browse_image('file://'+ filename)
+  }).pipe(fs.createWriteStream(filename));
+
+});
+
+close();
