@@ -170,7 +170,11 @@ controller.on('bot_message', (bot, msg) => {
 });
 
 controller.on('file_share', (bot, msg) => {
-  var url = msg.file.url_private;
+  var file = msg.file;
+  if (msg.files && msg.files.length > 0) {
+    file = msg.files[0];
+  }
+  var url = file.url_private;
   var filename = data_dir +'uploaded';
   cl('file shared, downloading', url);
 
