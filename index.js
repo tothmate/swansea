@@ -23,7 +23,7 @@ const webdriver_config = {
 
 const data_dir = __dirname + '/.data/';
 const port = 8765;
-const listen_types = ['ambient', 'direct_message'];
+const listen_types = ['ambient', 'direct_message', 'bot_message'];
 const controller = slackbot({
   clientId: process.env.client_id,
   clientSecret: process.env.client_secret,
