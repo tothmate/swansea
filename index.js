@@ -89,7 +89,7 @@ controller.hears(['^(say) (-v) (.*?) (.*)', '^(say) (.*)', '^(mondd) (.*)'], lis
     message = msg.match[4];
   }
 
-  bot.replyInThread('ack, turn up the volume');
+  bot.replyInThread(msg, 'ack, turn up the volume');
   execFile('say', ['-v', voice, message]);
 });
 
