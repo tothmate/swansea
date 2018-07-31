@@ -90,8 +90,7 @@ controller.hears('^help$', listen_types, (bot, msg) => {
     'use */giphy <keyword>* to send gifs',
     'and */imgflip <meme>* to generate yur own memes (type _/imgflip help_)',
     '*yt <search term>* to search for youtube videos',
-    '*close* kill the browser',
-    '*vb* to start the World Championship stream'
+    '*close* kill the browser'
   ];
   bot.reply(msg, help.join('\n'));
 });
@@ -133,11 +132,6 @@ controller.hears('^<(http.*)>$', listen_types, (bot, msg) => {
 
 controller.hears(['^close$', '^exit$', '^stop$'], listen_types, (bot, msg) => {
   close();
-});
-
-controller.hears('^vb$', listen_types, (bot, msg) => {
-  browse('https://player.mediaklikk.hu/playernew/player.php?video=mtv4live&osfamily=OS%20X&browsername=Chrome')
-    .click('#player').click('.jw-icon-fullscreen');
 });
 
 controller.hears(['^yt (.*)', '^youtube (.*)'], listen_types, (bot, msg) => {
