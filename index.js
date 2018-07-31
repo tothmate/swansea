@@ -30,7 +30,8 @@ const controller = slackbot({
   clientSigningSecret: process.env.client_signing_secret,
   scopes: ['bot'],
   json_file_store: data_dir + 'db/',
-  rtm_receive_messages: false
+  rtm_receive_messages: false,
+  logger: console_bot_logger
 });
 
 controller.setupWebserver(port, (err, webserver) =>  {
@@ -46,6 +47,17 @@ var browser = null;
 controller.spawn({'token': process.env.token}, (bot) => {
   console_bot = bot;
 }).startRTM();
+
+function console_bot_logger(...args) {
+  if (!console_bot) {
+    return;
+  }
+
+  console_bot.say({
+    channel: 'swansea-console',
+    text: args.join(' ')
+  });
+}
 
 function close() {
   browser = null;
@@ -94,7 +106,7 @@ controller.hears(['^(say) (-v) (.*?) (.*)', '^(say) (.*)', '^(mondd) (.*)'], lis
     message = msg.match[4];
   }
 
-  bot.replyInThread(msg, 'ack, turn up the volume');
+  bot.replyInThread('ack, turn up the volume');
   execFile('say', ['-v', voice, message]);
 });
 
@@ -122,7 +134,7 @@ controller.hears(['^yt (.*)', '^youtube (.*)'], listen_types, (bot, msg) => {
   youtubeSearch(keyword, {maxResults: 1, key: process.env.youtube_api_key}, (err, results) => {
     if (results && results.length > 0 && results[0].link) {
       browse_youtube(results[0].link);
-      bot.reply(results[0].link);
+      bot.reply(msg, results[0].link);
     } else {
       bot.replyInThread(msg, 'no result :(');
     }
