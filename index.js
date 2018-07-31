@@ -47,24 +47,13 @@ controller.spawn({'token': process.env.token}, (bot) => {
   console_bot = bot;
 }).startRTM();
 
-function cl(...args) {
-  console.log(...args);
-  console_bot.say({
-    channel: 'swansea-console',
-    text: args.join(' ')
-  });
-}
-
 function close() {
-  cl('killall Chrome');
   browser = null;
   execFile('killall', ['Google Chrome']);
 }
 
 function browse(url) {
-  cl('opening', url);
   if (!browser) {
-    cl('starting browser');
     browser = webdriverio.remote(webdriver_config).init();
   }
 
@@ -76,7 +65,6 @@ function browse_youtube(url) {
 }
 
 function browse_image(url) {
-  cl('opening image', url);
   browse('file://'+ __dirname + '/index.html').execute((url) => {
     document.getElementById("swansea-image").src = url;
   }, url);
@@ -106,19 +94,12 @@ controller.hears(['^(say) (-v) (.*?) (.*)', '^(say) (.*)', '^(mondd) (.*)'], lis
     message = msg.match[4];
   }
 
-  cl('saying', message, 'on', voice);
+  bot.replyInThread('ack, turn up the volume');
   execFile('say', ['-v', voice, message]);
 });
 
 controller.hears('^mond ', listen_types, (bot, msg) => {
   bot.reply(msg, 'you mean *mondd* :grammarnazi:')
-});
-
-controller.hears('^vol ([\\d]+)$', listen_types, (bot, msg) => {
-  volume = parseInt(msg.match[1]);
-  volume = Math.min(Math.max(volume, 0), 10);
-  cl('set volume', volume);
-  execFile('osascript', ['-e', 'set Volume '+ volume]);
 });
 
 controller.hears('^<(http.*)>$', listen_types, (bot, msg) => {
@@ -128,26 +109,28 @@ controller.hears('^<(http.*)>$', listen_types, (bot, msg) => {
   } else {
     browse(url);
   }
+  bot.replyInThread('opening...');
 });
 
 controller.hears(['^close$', '^exit$', '^stop$'], listen_types, (bot, msg) => {
   close();
+  bot.replyInThread('killin\' it...');
 });
 
 controller.hears(['^yt (.*)', '^youtube (.*)'], listen_types, (bot, msg) => {
   var keyword = msg.match[1];
-  cl('searching youtube', keyword);
   youtubeSearch(keyword, {maxResults: 1, key: process.env.youtube_api_key}, (err, results) => {
-    cl('youtube result, error?', err);
     if (results && results.length > 0 && results[0].link) {
       browse_youtube(results[0].link);
+      bot.reply(results[0].link);
+    } else {
+      bot.replyInThread('no result :(');
     }
   });
 });
 
 controller.hears('^git pull$', listen_types, (bot, msg) => {
-  cl('git pull');
-  execFile('git', ['pull'], (err, stdout, stderr) => cl(stdout));
+  execFile('git', ['pull'], (err, stdout, stderr) => bot.replyInThread(stdout));
 });
 
 controller.middleware.normalize.use((bot, msg, next) => {
@@ -171,7 +154,7 @@ controller.on('file_share', (bot, msg) => {
   }
   var url = file.url_private;
   var filename = data_dir +'uploaded';
-  cl('file shared, downloading', url);
+  bot.replyInThread('downloading file...');
 
   request({
     method: 'GET',
