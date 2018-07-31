@@ -27,6 +27,7 @@ const listen_types = ['ambient', 'direct_message'];
 const controller = slackbot({
   clientId: process.env.client_id,
   clientSecret: process.env.client_secret,
+  clientSigningSecret: process.env.client_signing_secret,
   scopes: ['bot'],
   json_file_store: data_dir + 'db/',
   rtm_receive_messages: false
