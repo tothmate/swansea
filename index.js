@@ -94,7 +94,7 @@ controller.hears(['^(say) (-v) (.*?) (.*)', '^(say) (.*)', '^(mondd) (.*)'], lis
     message = msg.match[4];
   }
 
-  bot.replyInThread('ack, turn up the volume');
+  bot.replyInThread(msg, 'ack, turn up the volume');
   execFile('say', ['-v', voice, message]);
 });
 
@@ -109,12 +109,12 @@ controller.hears('^<(http.*)>$', listen_types, (bot, msg) => {
   } else {
     browse(url);
   }
-  bot.replyInThread('opening...');
+  bot.replyInThread(msg, 'opening...');
 });
 
 controller.hears(['^close$', '^exit$', '^stop$'], listen_types, (bot, msg) => {
   close();
-  bot.replyInThread('killin\' it...');
+  bot.replyInThread(msg, 'killin\' it...');
 });
 
 controller.hears(['^yt (.*)', '^youtube (.*)'], listen_types, (bot, msg) => {
@@ -124,13 +124,13 @@ controller.hears(['^yt (.*)', '^youtube (.*)'], listen_types, (bot, msg) => {
       browse_youtube(results[0].link);
       bot.reply(results[0].link);
     } else {
-      bot.replyInThread('no result :(');
+      bot.replyInThread(msg, 'no result :(');
     }
   });
 });
 
 controller.hears('^git pull$', listen_types, (bot, msg) => {
-  execFile('git', ['pull'], (err, stdout, stderr) => bot.replyInThread(stdout));
+  execFile('git', ['pull'], (err, stdout, stderr) => bot.replyInThread(msg, stdout));
 });
 
 controller.middleware.normalize.use((bot, msg, next) => {
@@ -154,7 +154,7 @@ controller.on('file_share', (bot, msg) => {
   }
   var url = file.url_private;
   var filename = data_dir +'uploaded';
-  bot.replyInThread('downloading file...');
+  bot.replyInThread(msg, 'downloading file...');
 
   request({
     method: 'GET',
