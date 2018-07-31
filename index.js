@@ -31,7 +31,7 @@ const controller = slackbot({
   scopes: ['bot'],
   json_file_store: data_dir + 'db/',
   rtm_receive_messages: false,
-  logger: console_bot_logger
+  logger: {'log': console_bot_logger}
 });
 
 controller.setupWebserver(port, (err, webserver) =>  {
@@ -49,6 +49,7 @@ controller.spawn({'token': process.env.token}, (bot) => {
 }).startRTM();
 
 function console_bot_logger(...args) {
+  console.log(...args);
   if (!console_bot) {
     return;
   }
