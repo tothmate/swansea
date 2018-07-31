@@ -30,8 +30,7 @@ const controller = slackbot({
   clientSigningSecret: process.env.client_signing_secret,
   scopes: ['bot'],
   json_file_store: data_dir + 'db/',
-  rtm_receive_messages: false,
-  logger: {'log': console_bot_logger}
+  rtm_receive_messages: false
 });
 
 controller.setupWebserver(port, (err, webserver) =>  {
@@ -41,24 +40,7 @@ controller.setupWebserver(port, (err, webserver) =>  {
     .createWebhookEndpoints(controller.webserver);
 });
 
-var console_bot;
 var browser = null;
-
-controller.spawn({'token': process.env.token}, (bot) => {
-  console_bot = bot;
-}).startRTM();
-
-function console_bot_logger(...args) {
-  console.log(...args);
-  if (!console_bot) {
-    return;
-  }
-
-  console_bot.say({
-    channel: 'swansea-console',
-    text: args.join(' ')
-  });
-}
 
 function close() {
   browser = null;
