@@ -65,6 +65,14 @@ function browse_image(url) {
   }, url);
 }
 
+function ack(bot, msg) {
+  bot.api.reactions.add({
+      timestamp: msg.ts,
+      channel: msg.channel,
+      name: 'cookie'
+  });
+}
+
 controller.hears('^help$', listen_types, (bot, msg) => {
   var help = [
     'Try the following:',
@@ -89,8 +97,9 @@ controller.hears(['^(say) (-v) (.*?) (.*)', '^(say) (.*)', '^(mondd) (.*)'], lis
     message = msg.match[4];
   }
 
-  bot.replyInThread(msg, 'ack, turn up the volume');
   execFile('say', ['-v', voice, message]);
+
+  ack(bot, msg);
 });
 
 controller.hears('^mond ', listen_types, (bot, msg) => {
@@ -104,12 +113,13 @@ controller.hears('^<(http.*)>$', listen_types, (bot, msg) => {
   } else {
     browse(url);
   }
-  bot.replyInThread(msg, 'opening...');
+
+  ack(bot, msg);
 });
 
 controller.hears(['^close$', '^exit$', '^stop$'], listen_types, (bot, msg) => {
   close();
-  bot.replyInThread(msg, 'killin\' it...');
+  ack(bot, msg);
 });
 
 controller.hears(['^yt (.*)', '^youtube (.*)'], listen_types, (bot, msg) => {
@@ -149,7 +159,7 @@ controller.on('file_share', (bot, msg) => {
   }
   var url = file.url_private;
   var filename = data_dir +'uploaded';
-  bot.replyInThread(msg, 'downloading file...');
+  ack(bot, msg);
 
   request({
     method: 'GET',
