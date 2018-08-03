@@ -81,6 +81,7 @@ controller.hears('^help$', listen_types, (bot, msg) => {
     'use */giphy <keyword>* to send gifs',
     'and */imgflip <meme>* to generate yur own memes (type _/imgflip help_)',
     '*yt <search term>* to search for youtube videos',
+    '*t <text>* display text in browser',
     '*close* kill the browser'
   ];
   bot.reply(msg, help.join('\n'));
@@ -136,6 +137,39 @@ controller.hears(['^yt (.*)', '^youtube (.*)'], listen_types, (bot, msg) => {
 
 controller.hears('^git pull$', listen_types, (bot, msg) => {
   execFile('git', ['pull'], (err, stdout, stderr) => bot.replyInThread(msg, stdout));
+});
+
+controller.hears(['^t (.*)'], listen_types, (bot, msg) => {
+  var text = msg.match[1];
+
+  if (!browser) {
+    browse('file://'+ __dirname + '/index.html');
+  }
+
+  browser.execute((text) => {
+    var s = document.getElementById('swansea-text');
+    if (!s) {
+      s = document.createElement('div');
+      document.body.appendChild(s);
+      s.id = 'swansea-text';
+      s.textContent = text;
+      s.style.position = 'absolute';
+      s.style.bottom = 0;
+      s.style.width = '100%';
+      s.style.textAlign = 'center';
+      s.style.fontFamily = 'impact';
+      s.style.textTransform = 'uppercase';
+      s.style.color = 'white';
+      s.style.letterSpacing = '1px';
+      s.style.textShadow = '2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0px 2px 0 #000, 2px 0px 0 #000, 0px -2px 0 #000, -2px 0px 0 #000, 2px 2px 5px #000';
+  "2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0px 2px 0 #000, 2px 0px 0 #000, 0px -2px 0 #000, -2px 0px 0 #000, 2px 2px 5px #000";
+      s.style.fontSize = 'calc(4vw + 4vh + 2vmin)';
+    }
+
+    s.textContent = text;
+  }, text);
+
+  ack(bot, msg);
 });
 
 controller.middleware.normalize.use((bot, msg, next) => {
